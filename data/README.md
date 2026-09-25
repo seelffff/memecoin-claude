@@ -9,4 +9,4 @@
 
 Result quoted in CLAUDE.md: the 3 tokens with 1,000%+ in 24h averaged -92.6% (arithmetic mean of mcap change) 2–3 days later.
 
-Limits: 12 tokens, 3 in the headline group, one feed, one week, hand-logged, no liquidity or rug labels. It is an observation, not a backtest.
+Limits: 12 tokens, 3 in the headline group, one feed, one week, hand-logged, no liquidity or rug labels. Rows have tickers, not contract addresses, and no archived snapshots, so the arithmetic can be repeated but the observations cannot. It is a manual observation (n=3), not a backtest.
