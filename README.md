@@ -2,6 +2,8 @@
 
 One file that turns Claude into a memecoin checker whose first job is finding the reason not to buy.
 
+`CLAUDE.md` is a set of instructions. It brings no data by itself: Claude needs tools that can read the chain (below), otherwise the honest answer is `INSUFFICIENT_DATA`.
+
 It is a structured check, not a buy button. Unverified is never treated as safe.
 
 ## What it makes Claude do
@@ -32,7 +34,16 @@ curl -o CLAUDE.md https://raw.githubusercontent.com/seelffff/memecoin-claude/mai
 check robinhood:0x2e8c31162b855a2ffa90f6f8634643ad6f111e18
 ```
 
-Claude needs data to pass checks. Without tools it will mostly answer `INSUFFICIENT_DATA`, which is the honest answer. Useful sources:
+## Getting live data
+
+Claude needs data to pass checks. Without tools it will mostly answer `INSUFFICIENT_DATA`, which is the honest answer.
+
+**Solana** (any public RPC, no key):
+- `getAccountInfo` on the mint with `jsonParsed`: mint authority, freeze authority, Token-2022 extensions
+- `getTokenLargestAccounts`: the 20 largest token accounts (map them to owners, they are not wallets yet)
+- pump.fun tokens: `python tools/pumpfun_exit.py --curve <curve account>` reads virtual and real reserves and prints what a sell pays
+
+**EVM and discovery:**
 - Blockscout MCP (`mcp.blockscout.com`): contracts, holders, transfers on EVM chains
 - gmgn-skills (`github.com/GMGNAI/gmgn-skills`): holders, bundlers, snipers, smart money labels
 - Router quotes for exits: Jupiter (Solana), Uniswap (EVM)
@@ -53,11 +64,21 @@ python tools/exit.py --liq 1800000 --holders 9440000 4880000 --pct 10
   STRESS TEST (not a forecast): holders sell 10% = $1,432,000 valued at spot
   spot after -85.1% | avg fill -61.4% | proceeds $552,659
 ```
-Not valid for CLMM (v3/v4), bonding curves, order books or multi-hop routes. Use a live quote there.
+Not valid for CLMM (v3/v4), bonding curves, order books or multi-hop routes. Use `pumpfun_exit.py` for pump.fun curves and a live quote for the rest.
 
 Tests: `python tests/test_exit.py`
 
-## Example
+## pump.fun calculator
+
+`tools/pumpfun_exit.py`: tokens still on a pump.fun bonding curve. Price comes from virtual reserves, payouts from real SOL, fee 1.25% by default. It reproduces a real sell from 25 Sep 2026 to within 0.0001 SOL.
+```bash
+python tools/pumpfun_exit.py --curve 8t4tkjQkH3ArH2zmUVKmFbCUE1pHyCDq4Ac2ojbMh1wh
+```
+Tests: `python tests/test_pumpfun.py`
+
+## Examples
+
+[`examples/PFPRINTER-pumpfun-2026-09-25.md`](examples/PFPRINTER-pumpfun-2026-09-25.md): a random 15-minute-old pump.fun token. Clean permissions, one real sell went through, and still `REJECT`: the curve held ~4 SOL, and five hours later real SOL was zero.
 
 [`examples/AI-robinhood-2026-09-25.md`](examples/AI-robinhood-2026-09-25.md): a $238M token where two trader clans sit on $10M+ of profit. Result: `INSUFFICIENT_DATA`, because contract, LP and sellability were not verified, plus a stress test showing what a 10% sale by those clans would do to the pool.
 
