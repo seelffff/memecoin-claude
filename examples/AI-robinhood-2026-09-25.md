@@ -20,7 +20,7 @@ A worked example of the output format on real, public numbers. Not a call.
 ```
 TOKEN: robinhood:0x2e8c31162b855a2ffa90f6f8634643ad6f111e18 | POOL: UNKNOWN | UTC: 2026-09-25 ~13:30
 STATUS: INSUFFICIENT_DATA   SCORE: n/a
-CONFIDENCE: low (checked 3 of 8 mandatory fields, all from one source)
+CONFIDENCE: low (checked 1 of 8 mandatory fields, from one source)
 
 CHECKS:
   sellable      UNKNOWN   no sell simulation run on Robinhood Chain
@@ -28,8 +28,8 @@ CHECKS:
   proxy         UNKNOWN
   LP            UNKNOWN   pool address, lock and owner not found
   dev share     UNKNOWN
-  top 10        PASS      15.81% (fomo figure, exclusions not stated)
-  liquidity     PASS      $1.8M shown, pool type unknown
+  top 10        UNKNOWN   fomo shows 15.81%, but pool/burn exclusions are not stated
+  exit depth    UNKNOWN   fomo shows $1.8M, pool type and sell route unknown
   identity      PASS      contract address confirmed on the fomo URL
 
 EXIT (scenario only: assumes ONE constant-product pool holding all $1.8M):
@@ -61,6 +61,6 @@ UNKNOWN → how to check:
 SOURCES: fomo token page and two clan pages above, 2026-09-25 ~13:30 UTC
 ```
 
-What this shows: even with $10M+ of visible profit on the chart, the file does not hand out a green light. Five mandatory checks are unverified, so the status is INSUFFICIENT_DATA, and the stress test explains why size matters here.
+What this shows: even with $10M+ of visible profit on the chart, the file does not hand out a green light. Seven of eight mandatory checks are unverified, so the status is INSUFFICIENT_DATA, and the stress test explains why size matters here.
 
 Not financial advice.
