@@ -19,14 +19,20 @@ It is a structured check, not a buy button. Unverified is never treated as safe.
 
 ## Install
 
-**Claude Code** (one project):
+**Full repo** (rules + calculators + tests):
 ```bash
-curl -o CLAUDE.md https://raw.githubusercontent.com/seelffff/memecoin-claude/main/CLAUDE.md
+git clone https://github.com/seelffff/memecoin-claude.git
+cd memecoin-claude && claude
 ```
 
-**Claude Code** (every project): append it to `~/.claude/CLAUDE.md`.
+**Rules only, inside a project you already have.** Save under a new name so your own `CLAUDE.md` is not overwritten, then import it:
+```bash
+curl -o memecoin.md https://raw.githubusercontent.com/seelffff/memecoin-claude/main/CLAUDE.md
+echo "@memecoin.md" >> CLAUDE.md
+```
+The `tools/` calculators are not included in this mode.
 
-**claude.ai**: create a Project, paste `CLAUDE.md` into the project instructions.
+**claude.ai**: create a Project, paste `CLAUDE.md` into the project instructions. Calculators are not available there.
 
 ## Use it
 
@@ -38,10 +44,19 @@ check robinhood:0x2e8c31162b855a2ffa90f6f8634643ad6f111e18
 
 Claude needs data to pass checks. Without tools it will mostly answer `INSUFFICIENT_DATA`, which is the honest answer.
 
-**Solana** (any public RPC, no key):
-- `getAccountInfo` on the mint with `jsonParsed`: mint authority, freeze authority, Token-2022 extensions
-- `getTokenLargestAccounts`: the 20 largest token accounts (map them to owners, they are not wallets yet)
-- pump.fun tokens: `python tools/pumpfun_exit.py --curve <curve account>` reads virtual and real reserves and prints what a sell pays
+**Solana** (any public RPC, no key). Read-only JSON-RPC, for example the mint's permissions:
+```bash
+curl -s https://api.mainnet-beta.solana.com -H 'Content-Type: application/json' -d '{
+  "jsonrpc":"2.0","id":1,"method":"getAccountInfo",
+  "params":["<MINT>",{"encoding":"jsonParsed"}]}'
+```
+Look at `result.value.data.parsed.info`: `mintAuthority`, `freezeAuthority`, `extensions`. The response also carries `context.slot`: keep it as the snapshot reference.
+- `getTokenLargestAccounts` with the mint: the 20 largest token accounts. Map them to owners, they are not wallets yet.
+- pump.fun tokens, from the mint alone:
+  ```bash
+  python tools/pumpfun_exit.py --mint <MINT> --save-snapshot snap.json
+  ```
+  It derives the curve PDA from the mint, checks the owner program, the account type and that the pair is SOL (USDC pairs stop with `UNSUPPORTED_QUOTE`), then prints what a sell pays and saves the raw bytes with the slot.
 
 **EVM and discovery:**
 - Blockscout MCP (`mcp.blockscout.com`): contracts, holders, transfers on EVM chains
@@ -70,9 +85,9 @@ Tests: `python tests/test_exit.py`
 
 ## pump.fun calculator
 
-`tools/pumpfun_exit.py`: tokens still on a pump.fun bonding curve. Price comes from virtual reserves, payouts from real SOL, fee 1.25% by default. It reproduces a real sell from 25 Sep 2026 to within 0.0001 SOL.
+`tools/pumpfun_exit.py`: tokens still on a pump.fun bonding curve, SOL pairs only. Price comes from virtual reserves, payouts from real SOL, fee 1.25% by default. It reproduces a real sell from 25 Sep 2026 to within 1 lamport. When a sell is bigger than the real SOL on the curve it prints only an upper bound and `execution UNKNOWN`.
 ```bash
-python tools/pumpfun_exit.py --curve 8t4tkjQkH3ArH2zmUVKmFbCUE1pHyCDq4Ac2ojbMh1wh
+python tools/pumpfun_exit.py --mint 42pHP3TzLVX7Egx8zBwidnAFB4vUR9tzGgZssyGspump
 ```
 Tests: `python tests/test_pumpfun.py`
 
@@ -88,7 +103,8 @@ Tests: `python tests/test_pumpfun.py`
 
 ## Limits
 
-- This repo is a checklist and a calculator, not a scanner. It does not discover tokens or fetch data by itself.
+- `CLAUDE.md` does not fetch data. `pumpfun_exit.py --mint` reads one pump.fun curve over RPC. There is no scanner and no pipeline: nothing here discovers tokens.
+- No sell simulation is built in. Sellability stays `UNKNOWN` until an external simulator or live quote answers.
 - Thresholds (10%, 50%, score cutoffs) are defaults, not backtested.
 - A PASS from any external service is not a contract audit.
 

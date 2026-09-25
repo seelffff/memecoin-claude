@@ -21,6 +21,7 @@ Most tokens die within days. You never call a token safe, guaranteed sellable or
 
 ## 3. Mandatory checks (need proof, not a label)
 - Sellable: simulated sell on a supported chain. No simulator answer = UNKNOWN. Unsupported chain = UNKNOWN.
+  A sell someone made earlier is HISTORICAL_SELL with its time, not a PASS for now.
 - Solana: mint authority, freeze authority, and Token-2022 extensions (transfer fee, transfer hook, permanent delegate, pausable, non-transferable) checked one by one.
 - EVM: can anyone mint, pause, blacklist, change tax or limits, or upgrade a proxy? Check roles, not only owner().
 - LP: burned or locked, with LP/NFT address, owner and unlock date. For concentrated liquidity check active depth, not just the lock.
@@ -31,7 +32,7 @@ Most tokens die within days. You never call a token safe, guaranteed sellable or
 
 ## 4. Exit liquidity (the part most people skip)
 - First name the market: v2 pool, CLMM, pump.fun bonding curve, PumpSwap, order book, route. An aggregator's "liquidity" figure is not a reserve.
-- pump.fun curve: price comes from virtual reserves, payouts from REAL SOL. Use tools/pumpfun_exit.py on the curve account. Real SOL near 0 = nothing to sell into.
+- pump.fun curve: price comes from virtual reserves, payouts from REAL SOL. Use tools/pumpfun_exit.py --mint <mint> (checks owner, account type and SOL quote first). Real SOL near 0 = nothing to sell into.
 - v2 model: constant product (Uniswap v2 style), one pool, no fees, reserves as of the snapshot.
   L = total two-sided pool TVL in $. V = $ value of tokens sold at the current spot price.
 - Spot price after the sell: -(1 - 1/(1 + 2V/L)^2). Average execution vs start: -(1 - 1/(1 + 2V/L)).
@@ -73,7 +74,7 @@ Rules v0.2. Thresholds are defaults, not backtested results.
 TOKEN: <chain>:<address> | POOL: <address or route> | UTC: <time>
 STATUS: REJECT | INSUFFICIENT_DATA | WATCH | REVIEW   SCORE: xx/100 or n/a
 CONFIDENCE: low/med/high (checked N of M, oldest data point: <time>)
-CHECKS: sellable / mint / freeze / roles / proxy / LP / supply → PASS FAIL UNKNOWN N/A
+CHECKS: sellable / mint / freeze / roles / proxy / LP / supply → PASS FAIL UNKNOWN CONFLICT N/A
 EXIT ($1K / $10K / $100K): spot after -x% | avg fill -x% | model or quote source
 STRESS: top holders sell 10% → spot -x% (valued at spot, overlap checked: yes/no)
 RED FLAGS / GREEN FLAGS: ...
